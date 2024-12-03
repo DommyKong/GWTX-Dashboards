@@ -1,163 +1,182 @@
-from dash import dcc, html
+import streamlit as st
 import plotly.graph_objs as go
-import pandas as pd
 
-# Example Data for Inventory
-inventory_data = {
-    "Category": ["HL", "SL"],
-    "Current_Stock": [1200, 1000],  # Items currently in stock
-    "Turnover_Rate": [5.0, 4.5],  # Times inventory is sold/replenished per month
-    "Overstock_Alert": [200, 150],  # Overstock (threshold exceeded)
-    "Unsold_Items_3_Weeks": [100, 120],  # Items unsold for 3 weeks
-    "Inventory_Value": [6000, 5000],  # Total monetary value of inventory
-    "Aging_Inventory_Value": [1200, 1000],  # Value of inventory unsold for 3 weeks
-    "Shrinkage_Percentage": [2.0, 1.5],  # Percentage of inventory lost
-    "Dead_Stock_Items": [50, 40],  # Items not sold within a specified timeframe
-    "Total_Stock": [1250, 1040],  # Total inventory including dead stock
-}
+# Adjust sidebar and widget font size
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        min-width: 200px; /* Reduce sidebar width */
+        max-width: 200px;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 18px; /* Reduce widget font size */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# Calculate Dead Stock Rate
-inventory_data["Dead_Stock_Rate"] = [(inventory_data["Dead_Stock_Items"][i] / inventory_data["Total_Stock"][i]) * 100 for i in range(len(inventory_data["Category"]))]
+def inventory_dashboard():
+    # Mock Data for Inventory Dashboard
+    data = {
+        "Metrics": {
+            "Current Stock Levels": {"HL": 900, "SL": 700},
+            "Turnover Rate": {"HL": 4.5, "SL": 4.8},
+            "Overstock Alerts": {"HL": 120, "SL": 100},
+            "Unsold Items (3 Weeks)": {"HL": 150, "SL": 120},
+            "Inventory Shrinkage Rate": {"HL": 2.1, "SL": 1.8},
+            "Dead Stock": {"HL": 30, "SL": 25},
+            "Dead Stock Rate": {"HL": 5, "SL": 4.5},
+            "Aging Inventory Value": {"HL": 1800, "SL": 1600},
+            "Inventory Value by Category": {"HL": 5000, "SL": 4000},
+        }
+    }
 
-# Convert Data to DataFrame
-inventory_df = pd.DataFrame(inventory_data)
+    # Title
+    st.title("Inventory Dashboard")
 
-def get_inventory_dashboard():
-    return html.Div([
-        html.H1("Inventory Dashboard", style={'textAlign': 'center'}),
+    # Widgets for Key Metrics
+    col1, col2, col3 = st.columns(3)
 
-        # Current Stock Levels
-        dcc.Graph(
-            id='current-stock',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Current_Stock"], marker_color=['blue', 'orange'])
-                ],
-                'layout': go.Layout(
-                    title="Current Stock Levels by Category",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Stock Levels'}
-                )
-            }
-        ),
+    with col1:
+        st.metric("Current Stock (HL)", f"{data['Metrics']['Current Stock Levels']['HL']} items")
+        st.metric("Turnover Rate (HL)", f"{data['Metrics']['Turnover Rate']['HL']}%", "+1% MoM")
+        st.metric("Overstock Alerts (HL)", f"{data['Metrics']['Overstock Alerts']['HL']} items")
 
-        # Turnover Rate
-        dcc.Graph(
-            id='turnover-rate',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Turnover_Rate"], marker_color=['green', 'purple'])
-                ],
-                'layout': go.Layout(
-                    title="Turnover Rate (Times Per Month)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Turnover Rate'}
-                )
-            }
-        ),
+    with col2:
+        st.metric("Current Stock (SL)", f"{data['Metrics']['Current Stock Levels']['SL']} items")
+        st.metric("Turnover Rate (SL)", f"{data['Metrics']['Turnover Rate']['SL']}%", "+1% MoM")
+        st.metric("Overstock Alerts (SL)", f"{data['Metrics']['Overstock Alerts']['SL']} items")
 
-        # Overstock/Understock Alerts
-        dcc.Graph(
-            id='overstock-alerts',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Overstock_Alert"], marker_color=['red', 'yellow'])
-                ],
-                'layout': go.Layout(
-                    title="Overstock Alerts by Category",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Overstock Items'}
-                )
-            }
-        ),
+    with col3:
+        st.metric("Unsold Items (HL)", f"{data['Metrics']['Unsold Items (3 Weeks)']['HL']} items", "-10% MoM")
+        st.metric("Unsold Items (SL)", f"{data['Metrics']['Unsold Items (3 Weeks)']['SL']} items", "-10% MoM")
+        st.metric("Shrinkage Rate", f"HL: {data['Metrics']['Inventory Shrinkage Rate']['HL']}%, SL: {data['Metrics']['Inventory Shrinkage Rate']['SL']}%")
 
-        # Items Unsold for 3 Weeks
-        dcc.Graph(
-            id='unsold-items',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Unsold_Items_3_Weeks"], marker_color=['purple', 'cyan'])
-                ],
-                'layout': go.Layout(
-                    title="Items Unsold for 3 Weeks",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Unsold Items'}
-                )
-            }
-        ),
+    # Graphs
+    # 1. Current Stock Levels (HL vs SL)
+    st.subheader("Current Stock Levels (HL vs SL)")
+    stock_fig = go.Figure()
+    stock_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Current Stock Levels"]["HL"],
+            data["Metrics"]["Current Stock Levels"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    stock_fig.update_layout(title="Current Stock Levels", xaxis_title="Category", yaxis_title="Items")
+    st.plotly_chart(stock_fig, use_container_width=True)
 
-        # Inventory Value by Category
-        dcc.Graph(
-            id='inventory-value',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Inventory_Value"], marker_color=['blue', 'orange'])
-                ],
-                'layout': go.Layout(
-                    title="Inventory Value by Category",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Inventory Value ($)'}
-                )
-            }
-        ),
+    # 2. Turnover Rate
+    st.subheader("Turnover Rate (HL vs SL)")
+    turnover_fig = go.Figure()
+    turnover_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Turnover Rate"]["HL"],
+            data["Metrics"]["Turnover Rate"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    turnover_fig.update_layout(title="Turnover Rate", xaxis_title="Category", yaxis_title="Rate (%)")
+    st.plotly_chart(turnover_fig, use_container_width=True)
 
-        # Aging Inventory Value
-        dcc.Graph(
-            id='aging-inventory-value',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Aging_Inventory_Value"], marker_color=['green', 'purple'])
-                ],
-                'layout': go.Layout(
-                    title="Aging Inventory Value (Unsold for 3 Weeks)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Value ($)'}
-                )
-            }
-        ),
+    # 3. Overstock Alerts
+    st.subheader("Overstock Alerts (HL vs SL)")
+    overstock_fig = go.Figure()
+    overstock_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Overstock Alerts"]["HL"],
+            data["Metrics"]["Overstock Alerts"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    overstock_fig.update_layout(title="Overstock Alerts", xaxis_title="Category", yaxis_title="Alerts")
+    st.plotly_chart(overstock_fig, use_container_width=True)
 
-        # Inventory Shrinkage
-        dcc.Graph(
-            id='shrinkage-percentage',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Shrinkage_Percentage"], marker_color=['red', 'yellow'])
-                ],
-                'layout': go.Layout(
-                    title="Inventory Shrinkage Percentage",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Shrinkage (%)'}
-                )
-            }
-        ),
+    # 4. Unsold Items
+    st.subheader("Unsold Items After 3 Weeks (HL vs SL)")
+    unsold_fig = go.Figure()
+    unsold_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Unsold Items (3 Weeks)"]["HL"],
+            data["Metrics"]["Unsold Items (3 Weeks)"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    unsold_fig.update_layout(title="Unsold Items", xaxis_title="Category", yaxis_title="Items")
+    st.plotly_chart(unsold_fig, use_container_width=True)
 
-        # Dead Stock Items
-        dcc.Graph(
-            id='dead-stock',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Dead_Stock_Items"], marker_color=['purple', 'cyan'])
-                ],
-                'layout': go.Layout(
-                    title="Dead Stock Items",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Dead Stock (Items)'}
-                )
-            }
-        ),
+    # 5. Inventory Shrinkage Rate
+    st.subheader("Inventory Shrinkage Rate (HL vs SL)")
+    shrinkage_fig = go.Figure()
+    shrinkage_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Inventory Shrinkage Rate"]["HL"],
+            data["Metrics"]["Inventory Shrinkage Rate"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    shrinkage_fig.update_layout(title="Shrinkage Rate", xaxis_title="Category", yaxis_title="Rate (%)")
+    st.plotly_chart(shrinkage_fig, use_container_width=True)
 
-        # Dead Stock Rate
-        dcc.Graph(
-            id='dead-stock-rate',
-            figure={
-                'data': [
-                    go.Bar(x=inventory_df["Category"], y=inventory_df["Dead_Stock_Rate"], marker_color=['blue', 'orange'])
-                ],
-                'layout': go.Layout(
-                    title="Dead Stock Rate Compared to Overall Stock",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Dead Stock Rate (%)'}
-                )
-            }
-        ),
-    ])
+    # 6. Dead Stock
+    st.subheader("Dead Stock (HL vs SL)")
+    dead_stock_fig = go.Figure()
+    dead_stock_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Dead Stock"]["HL"],
+            data["Metrics"]["Dead Stock"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    dead_stock_fig.update_layout(title="Dead Stock", xaxis_title="Category", yaxis_title="Items")
+    st.plotly_chart(dead_stock_fig, use_container_width=True)
+
+    # 7. Dead Stock Rate
+    st.subheader("Dead Stock Rate (HL vs SL)")
+    dead_rate_fig = go.Figure()
+    dead_rate_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Dead Stock Rate"]["HL"],
+            data["Metrics"]["Dead Stock Rate"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    dead_rate_fig.update_layout(title="Dead Stock Rate", xaxis_title="Category", yaxis_title="Rate (%)")
+    st.plotly_chart(dead_rate_fig, use_container_width=True)
+
+    # 8. Aging Inventory Value
+    st.subheader("Aging Inventory Value (HL vs SL)")
+    aging_fig = go.Figure()
+    aging_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Aging Inventory Value"]["HL"],
+            data["Metrics"]["Aging Inventory Value"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    aging_fig.update_layout(title="Aging Inventory Value", xaxis_title="Category", yaxis_title="Value ($)")
+    st.plotly_chart(aging_fig, use_container_width=True)
+
+    # 9. Inventory Value by Category
+    st.subheader("Inventory Value by Category")
+    inventory_value_fig = go.Figure()
+    inventory_value_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Inventory Value by Category"]["HL"],
+            data["Metrics"]["Inventory Value by Category"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    inventory_value_fig.update_layout(title="Inventory Value by Category", xaxis_title="Category", yaxis_title="Value ($)")
+    st.plotly_chart(inventory_value_fig, use_container_width=True)

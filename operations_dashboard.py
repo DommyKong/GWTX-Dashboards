@@ -1,137 +1,162 @@
-from dash import dcc, html
+import streamlit as st
 import plotly.graph_objs as go
 import pandas as pd
 
-# Example Data for Operations
-operations_data = {
-    "Metric": ["SL", "HL"],
-    "Processed_Items_Daily": [50, 40],
-    "Processed_Items_Weekly": [350, 280],
-    "Processed_Items_Monthly": [1400, 1120],
-    "Processing_Time_Per_Item": [4, 6],  # Minutes
-    "Employee_Tagging_Performance": {"Ryan": [180, 150], "Jessica": [120, 120]},  # Items tagged
-    "Unsold_Inventory_Percentage": [30, 40],  # Percentage
-    "Restocking_Rate": [2, 3],  # Days
-    "Incoming_Donations_Daily": [80, 70],
-    "Incoming_Donations_Weekly": [560, 490],
-    "Incoming_Donations_Monthly": [2240, 1960],
-    "Donation_Conversion_Percentage": [85, 80],  # Percentage
-}
+# Adjust sidebar and widget font size
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        min-width: 200px; /* Reduce sidebar width */
+        max-width: 200px;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 18px; /* Reduce widget font size */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-def get_operations_dashboard():
-    return html.Div([
-        html.H1("Operations Dashboard", style={'textAlign': 'center'}),
+def operations_dashboard():
+    # Mock Data for Operations Dashboard
+    data = {
+        "Metrics": {
+            "Total Items Processed": {
+                "Daily": 500,
+                "Weekly": 3000,
+                "Monthly": 12000,
+            },
+            "Processing Time Per Item": {"HL": 3.2, "SL": 3.5},
+            "Employee Tagging Performance": {"HL": 310, "SL": 295},
+            "Unsold Inventory % (3 Weeks)": {"HL": 18, "SL": 22},
+            "Restocking Rate (Days)": {"HL": 1.8, "SL": 2.3},
+            "Incoming Donations": {
+                "Daily": {"HL": 60, "SL": 55},
+                "Weekly": {"HL": 400, "SL": 370},
+                "Monthly": {"HL": 1500, "SL": 1400},
+            },
+            "Donation Conversion Rate": {"HL": 94, "SL": 89},
+        }
+    }
 
-        # Total Items Processed (Daily/Weekly/Monthly)
-        dcc.Graph(
-            id='processed-items',
-            figure={
-                'data': [
-                    go.Bar(name='Daily', x=operations_data["Metric"], y=operations_data["Processed_Items_Daily"]),
-                    go.Bar(name='Weekly', x=operations_data["Metric"], y=operations_data["Processed_Items_Weekly"]),
-                    go.Bar(name='Monthly', x=operations_data["Metric"], y=operations_data["Processed_Items_Monthly"]),
-                ],
-                'layout': go.Layout(
-                    title="Total Items Processed (Daily/Weekly/Monthly)",
-                    barmode='group',
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Items Processed'}
-                )
-            }
-        ),
+    # Title
+    st.title("Operations Dashboard")
 
-        # Processing Time Per Item
-        dcc.Graph(
-            id='processing-time',
-            figure={
-                'data': [
-                    go.Bar(x=operations_data["Metric"], y=operations_data["Processing_Time_Per_Item"], marker_color=['blue', 'orange'])
-                ],
-                'layout': go.Layout(
-                    title="Processing Time Per Item (Minutes)",
-                )
-            }
-        ),
+    # Widgets for Key Metrics
+    col1, col2, col3 = st.columns(3)
 
-        # Employee Tagging Performance
-        dcc.Graph(
-            id='employee-performance',
-            figure={
-                'data': [
-                    go.Bar(name='Ryan (SL)', x=["SL"], y=[operations_data["Employee_Tagging_Performance"]["Ryan"][0]], marker_color='green'),
-                    go.Bar(name='Ryan (HL)', x=["HL"], y=[operations_data["Employee_Tagging_Performance"]["Ryan"][1]], marker_color='limegreen'),
-                    go.Bar(name='Jessica (SL)', x=["SL"], y=[operations_data["Employee_Tagging_Performance"]["Jessica"][0]], marker_color='red'),
-                    go.Bar(name='Jessica (HL)', x=["HL"], y=[operations_data["Employee_Tagging_Performance"]["Jessica"][1]], marker_color='salmon'),
-                ],
-                'layout': go.Layout(
-                    title="Employee Tagging Performance (By Individual)",
-                    barmode='group',
-                )
-            }
-        ),
+    with col1:
+        st.metric("Total Items Processed (Monthly)", f"{data['Metrics']['Total Items Processed']['Monthly']} items", "+5% MoM")
+        st.metric("Processing Time (HL)", f"{data['Metrics']['Processing Time Per Item']['HL']} mins", "-0.5% MoM")
+        st.metric("Processing Time (SL)", f"{data['Metrics']['Processing Time Per Item']['SL']} mins", "-0.5% MoM")
 
-        # Unsold Inventory Percentage
-        dcc.Graph(
-            id='unsold-inventory',
-            figure={
-                'data': [
-                    go.Bar(x=operations_data["Metric"], y=operations_data["Unsold_Inventory_Percentage"], marker_color=['purple', 'pink'])
-                ],
-                'layout': go.Layout(
-                    title="Unsold Inventory Percentage (After 3 Weeks)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Percentage'}
-                )
-            }
-        ),
+    with col2:
+        st.metric("Unsold Inventory % (HL)", f"{data['Metrics']['Unsold Inventory % (3 Weeks)']['HL']}%", "-2% MoM")
+        st.metric("Unsold Inventory % (SL)", f"{data['Metrics']['Unsold Inventory % (3 Weeks)']['SL']}%", "-2% MoM")
+        st.metric("Restocking Rate (HL)", f"{data['Metrics']['Restocking Rate (Days)']['HL']} days", "-1% MoM")
 
-        # Restocking Rate
-        dcc.Graph(
-            id='restocking-rate',
-            figure={
-                'data': [
-                    go.Bar(x=operations_data["Metric"], y=operations_data["Restocking_Rate"], marker_color=['teal', 'cyan'])
-                ],
-                'layout': go.Layout(
-                    title="Restocking Rate (Days)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Days'}
-                )
-            }
-        ),
+    with col3:
+        st.metric("Restocking Rate (SL)", f"{data['Metrics']['Restocking Rate (Days)']['SL']} days", "-1% MoM")
+        st.metric("Donation Conversion Rate (HL)", f"{data['Metrics']['Donation Conversion Rate']['HL']}%", "+3% MoM")
+        st.metric("Donation Conversion Rate (SL)", f"{data['Metrics']['Donation Conversion Rate']['SL']}%", "+3% MoM")
 
-        # Incoming Donations (Daily/Weekly/Monthly)
-        dcc.Graph(
-            id='incoming-donations',
-            figure={
-                'data': [
-                    go.Bar(name='Daily', x=operations_data["Metric"], y=operations_data["Incoming_Donations_Daily"], marker_color='gold'),
-                    go.Bar(name='Weekly', x=operations_data["Metric"], y=operations_data["Incoming_Donations_Weekly"], marker_color='yellow'),
-                    go.Bar(name='Monthly', x=operations_data["Metric"], y=operations_data["Incoming_Donations_Monthly"], marker_color='orange'),
-                ],
-                'layout': go.Layout(
-                    title="Incoming Donations (Daily/Weekly/Monthly)",
-                    barmode='group',
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Donations'}
-                )
-            }
-        ),
+    # Graphs
+    # 1. Total Items Processed (Daily/Weekly/Monthly)
+    st.subheader("Total Items Processed (Daily/Weekly/Monthly)")
+    processed_fig = go.Figure()
+    processed_fig.add_trace(go.Bar(
+        x=["Daily", "Weekly", "Monthly"],
+        y=[
+            data["Metrics"]["Total Items Processed"]["Daily"],
+            data["Metrics"]["Total Items Processed"]["Weekly"],
+            data["Metrics"]["Total Items Processed"]["Monthly"],
+        ],
+        marker_color=["blue", "orange", "cyan"]
+    ))
+    processed_fig.update_layout(title="Total Items Processed", xaxis_title="Timeframe", yaxis_title="Items Processed")
+    st.plotly_chart(processed_fig, use_container_width=True)
 
-        # Donation Conversion Percentage
-        dcc.Graph(
-            id='donation-conversion',
-            figure={
-                'data': [
-                    go.Pie(
-                        labels=operations_data["Metric"],
-                        values=operations_data["Donation_Conversion_Percentage"],
-                        hole=.4
-                    )
-                ],
-                'layout': go.Layout(
-                    title="Donation Conversion Percentage",
-                )
-            }
-        ),
-    ])
+    # 2. Processing Time Per Item (HL vs SL)
+    st.subheader("Processing Time Per Item (HL vs SL)")
+    time_fig = go.Figure()
+    time_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Processing Time Per Item"]["HL"],
+            data["Metrics"]["Processing Time Per Item"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    time_fig.update_layout(title="Processing Time Per Item", xaxis_title="Category", yaxis_title="Time (mins)")
+    st.plotly_chart(time_fig, use_container_width=True)
+
+    # 3. Employee Tagging Performance (HL vs SL)
+    st.subheader("Employee Tagging Performance (HL vs SL)")
+    tagging_fig = go.Figure()
+    tagging_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Employee Tagging Performance"]["HL"],
+            data["Metrics"]["Employee Tagging Performance"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    tagging_fig.update_layout(title="Employee Tagging Performance", xaxis_title="Category", yaxis_title="Items Tagged")
+    st.plotly_chart(tagging_fig, use_container_width=True)
+
+    # 4. Unsold Inventory % (HL vs SL)
+    st.subheader("Unsold Inventory % After 3 Weeks (HL vs SL)")
+    unsold_fig = go.Figure()
+    unsold_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Unsold Inventory % (3 Weeks)"]["HL"],
+            data["Metrics"]["Unsold Inventory % (3 Weeks)"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    unsold_fig.update_layout(title="Unsold Inventory %", xaxis_title="Category", yaxis_title="Percentage (%)")
+    st.plotly_chart(unsold_fig, use_container_width=True)
+
+    # 5. Restocking Rate (HL vs SL)
+    st.subheader("Restocking Rate (HL vs SL)")
+    restocking_fig = go.Figure()
+    restocking_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Restocking Rate (Days)"]["HL"],
+            data["Metrics"]["Restocking Rate (Days)"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    restocking_fig.update_layout(title="Restocking Rate", xaxis_title="Category", yaxis_title="Time (Days)")
+    st.plotly_chart(restocking_fig, use_container_width=True)
+
+    # 6. Incoming Donations (Monthly HL/SL)
+    st.subheader("Incoming Donations (Monthly by HL vs SL)")
+    donations_fig = go.Figure()
+    donations_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Incoming Donations"]["Monthly"]["HL"],
+            data["Metrics"]["Incoming Donations"]["Monthly"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    donations_fig.update_layout(title="Incoming Donations", xaxis_title="Category", yaxis_title="Donations")
+    st.plotly_chart(donations_fig, use_container_width=True)
+
+    # 7. Donation Conversion Rate (HL vs SL)
+    st.subheader("Donation Conversion Rate (HL vs SL)")
+    conversion_fig = go.Figure()
+    conversion_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Donation Conversion Rate"]["HL"],
+            data["Metrics"]["Donation Conversion Rate"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    conversion_fig.update_layout(title="Donation Conversion Rate", xaxis_title="Category", yaxis_title="Percentage (%)")
+    st.plotly_chart(conversion_fig, use_container_width=True)

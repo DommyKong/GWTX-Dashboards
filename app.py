@@ -1,21 +1,35 @@
-import dash
-from dash import dcc, html
-from sales_dashboard import get_sales_dashboard
-from operations_dashboard import get_operations_dashboard
-from inventory_dashboard import get_inventory_dashboard
+import streamlit as st
+from sales_dashboard import sales_dashboard
+from operations_dashboard import operations_dashboard
+from inventory_dashboard import inventory_dashboard
 
-# Initialize Dash App
-app = dash.Dash(__name__)
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+dashboard_selection = st.sidebar.radio(
+    "Select Dashboard", 
+    ["Home", "Sales Dashboard", "Operations Dashboard", "Inventory Dashboard"]
+)
 
-# App Layout with Tabs
-app.layout = html.Div([
-    html.H1("Business Dashboards", style={'textAlign': 'center'}),
-    dcc.Tabs([
-        dcc.Tab(label='Sales Dashboard', children=get_sales_dashboard()),
-        dcc.Tab(label='Operations Dashboard', children=get_operations_dashboard()),
-        dcc.Tab(label='Inventory Dashboard', children=get_inventory_dashboard()),
-    ])
-])
+# Home Page
+if dashboard_selection == "Home":
+    st.title("Welcome to the Thrift Analytics Dashboard")
+    st.write("""
+        This application provides comprehensive insights into various aspects of the thrifting business:
+        - **Sales Dashboard**: View metrics like sales volume, revenue, and growth rates.
+        - **Operations Dashboard**: Monitor operational performance and efficiency.
+        - **Inventory Dashboard**: Track stock levels, turnover rates, and shrinkage.
+        
+        Use the sidebar to navigate between dashboards.
+    """)
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+# Sales Dashboard
+elif dashboard_selection == "Sales Dashboard":
+    sales_dashboard()
+
+# Operations Dashboard
+elif dashboard_selection == "Operations Dashboard":
+    operations_dashboard()
+
+# Inventory Dashboard
+elif dashboard_selection == "Inventory Dashboard":
+    inventory_dashboard()

@@ -1,193 +1,168 @@
-from dash import dcc, html
+import streamlit as st
 import plotly.graph_objs as go
-import pandas as pd
 
-# Example Data for Sales
-sales_data = {
-    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    "HL_Sales_Volume": [500, 600, 550, 700, 750, 800],
-    "SL_Sales_Volume": [400, 450, 480, 600, 650, 700],
-    "HL_Revenue": [5000, 6000, 5500, 7000, 7500, 8000],
-    "SL_Revenue": [4000, 4500, 4800, 6000, 6500, 7000],
-    "HL_Inventory_Available": [1000, 1100, 1050, 1200, 1250, 1300],
-    "SL_Inventory_Available": [900, 950, 970, 1100, 1150, 1200],
-    "Best_Selling_Items": {"HL": "Kitchenware", "SL": "Winter Jackets"},
-    "Revenue_Growth_Rate": {"HL": 10, "SL": 12},  # Monthly Growth Rate (%)
-    "Avg_Revenue_Per_Item": {"HL": 12, "SL": 10},  # Revenue / Items Sold
-    "Gross_Margin": {"HL": 3000, "SL": 2500},  # Revenue - COGS
-    "ATV": {"HL": 35, "SL": 30},  # Revenue / Transactions
-    "Channel_Revenue": {"In-Store": 10000, "Online": 5000},  # Split by Channel
-    "Revenue_Per_Employee": {"HL": 2000, "SL": 1800},  # Revenue / Employees
-}
+# Adjust sidebar and widget font size
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        min-width: 200px; /* Reduce sidebar width */
+        max-width: 200px;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 18px; /* Reduce widget font size */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# Calculate Sell-Through Rate (STR) for HL and SL
-sales_data["HL_STR"] = [(sales_data["HL_Sales_Volume"][i] / sales_data["HL_Inventory_Available"][i]) * 100 for i in range(len(sales_data["Month"]))]
-sales_data["SL_STR"] = [(sales_data["SL_Sales_Volume"][i] / sales_data["SL_Inventory_Available"][i]) * 100 for i in range(len(sales_data["Month"]))]
+def sales_dashboard():
+    # Mock Data for Sales Dashboard
+    data = {
+        "Metrics": {
+            "Monthly Sales Volume": {"HL": 1200, "SL": 1100},
+            "Monthly Revenue": {"HL": 6000, "SL": 5000},
+            "Best-Selling Items": {"HL": "Kitchenware", "SL": "Winter Jackets"},
+            "Revenue Growth Rate": {"HL": 5, "SL": 6},
+            "Average Revenue Per Item": {"HL": 20, "SL": 25},
+            "Gross Margin": {"HL": 3000, "SL": 2500},
+            "Average Transaction Value": {"HL": 200, "SL": 150},
+            "Sales by Channel": {"In-Store": 8000, "Online": 7000},
+            "Revenue Per Employee": {"HL": 3000, "SL": 2800},
+        }
+    }
 
-# Convert Data to DataFrame
-sales_df = pd.DataFrame({
-    "Month": sales_data["Month"],
-    "HL_Sales_Volume": sales_data["HL_Sales_Volume"],
-    "SL_Sales_Volume": sales_data["SL_Sales_Volume"],
-    "HL_Revenue": sales_data["HL_Revenue"],
-    "SL_Revenue": sales_data["SL_Revenue"],
-    "HL_STR": sales_data["HL_STR"],
-    "SL_STR": sales_data["SL_STR"],
-})
+    # Title
+    st.title("Sales Dashboard")
 
-def get_sales_dashboard():
-    return html.Div([
-        html.H1("Sales Dashboard", style={'textAlign': 'center'}),
+    # Widgets for Key Metrics
+    col1, col2, col3 = st.columns(3)
 
-        # Monthly Sales Volume (HL vs SL)
-        dcc.Graph(
-            id='sales-volume',
-            figure={
-                'data': [
-                    go.Scatter(x=sales_df["Month"], y=sales_df["HL_Sales_Volume"], mode='lines+markers', name='HL'),
-                    go.Scatter(x=sales_df["Month"], y=sales_df["SL_Sales_Volume"], mode='lines+markers', name='SL'),
-                ],
-                'layout': go.Layout(
-                    title="Monthly Sales Volume: HL vs. SL",
-                    xaxis={'title': 'Month'},
-                    yaxis={'title': 'Sales Volume'}
-                )
-            }
-        ),
+    with col1:
+        st.metric("Monthly Sales Volume (HL)", f"{data['Metrics']['Monthly Sales Volume']['HL']} items")
+        st.metric("Revenue Growth Rate (HL)", f"{data['Metrics']['Revenue Growth Rate']['HL']}%", "+2% MoM")
+        st.metric("Best-Selling Item (HL)", f"{data['Metrics']['Best-Selling Items']['HL']}")
 
-        # Sell-Through Rate (STR)
-        dcc.Graph(
-            id='sell-through-rate',
-            figure={
-                'data': [
-                    go.Bar(name='HL STR', x=sales_df["Month"], y=sales_df["HL_STR"], marker_color='blue'),
-                    go.Bar(name='SL STR', x=sales_df["Month"], y=sales_df["SL_STR"], marker_color='orange'),
-                ],
-                'layout': go.Layout(
-                    title="Sell-Through Rate (STR): HL vs. SL",
-                    barmode='stack',
-                    xaxis={'title': 'Month'},
-                    yaxis={'title': 'Sell-Through Rate (%)'}
-                )
-            }
-        ),
+    with col2:
+        st.metric("Monthly Sales Volume (SL)", f"{data['Metrics']['Monthly Sales Volume']['SL']} items")
+        st.metric("Revenue Growth Rate (SL)", f"{data['Metrics']['Revenue Growth Rate']['SL']}%", "+3% MoM")
+        st.metric("Best-Selling Item (SL)", f"{data['Metrics']['Best-Selling Items']['SL']}")
 
-        # Monthly Revenue Comparison
-        dcc.Graph(
-            id='revenue-comparison',
-            figure={
-                'data': [
-                    go.Bar(name='HL Revenue', x=sales_df["Month"], y=sales_df["HL_Revenue"], marker_color='blue'),
-                    go.Bar(name='SL Revenue', x=sales_df["Month"], y=sales_df["SL_Revenue"], marker_color='orange'),
-                ],
-                'layout': go.Layout(
-                    title="Monthly Revenue Comparison: HL vs. SL",
-                    barmode='group',
-                    xaxis={'title': 'Month'},
-                    yaxis={'title': 'Revenue ($)'}
-                )
-            }
-        ),
+    with col3:
+        st.metric("Average Revenue/Item (HL)", f"${data['Metrics']['Average Revenue Per Item']['HL']}")
+        st.metric("Average Revenue/Item (SL)", f"${data['Metrics']['Average Revenue Per Item']['SL']}")
+        st.metric("Gross Margin (HL)", f"${data['Metrics']['Gross Margin']['HL']}")
 
-        # Best-Selling Items
-        html.Div([
-            html.H3("Best-Selling Items by Category"),
-            html.P(f"HL: {sales_data['Best_Selling_Items']['HL']}"),
-            html.P(f"SL: {sales_data['Best_Selling_Items']['SL']}"),
-        ], style={'textAlign': 'center', 'margin': '20px'}),
+    # Graphs
+    # 1. Monthly Sales Volume
+    st.subheader("Monthly Sales Volume (HL vs SL)")
+    sales_fig = go.Figure()
+    sales_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Monthly Sales Volume"]["HL"],
+            data["Metrics"]["Monthly Sales Volume"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    sales_fig.update_layout(title="Monthly Sales Volume", xaxis_title="Category", yaxis_title="Items Sold")
+    st.plotly_chart(sales_fig, use_container_width=True)
 
-        # Revenue Growth Rate
-        dcc.Graph(
-            id='revenue-growth-rate',
-            figure={
-                'data': [
-                    go.Bar(x=["HL", "SL"], y=[sales_data["Revenue_Growth_Rate"]["HL"], sales_data["Revenue_Growth_Rate"]["SL"]],
-                           marker_color=['green', 'purple'])
-                ],
-                'layout': go.Layout(
-                    title="Revenue Growth Rate (%)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Growth Rate (%)'}
-                )
-            }
-        ),
+    # 2. Monthly Revenue
+    st.subheader("Monthly Revenue (HL vs SL)")
+    revenue_fig = go.Figure()
+    revenue_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Monthly Revenue"]["HL"],
+            data["Metrics"]["Monthly Revenue"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    revenue_fig.update_layout(title="Monthly Revenue", xaxis_title="Category", yaxis_title="Revenue ($)")
+    st.plotly_chart(revenue_fig, use_container_width=True)
 
-        # Average Revenue per Item
-        dcc.Graph(
-            id='avg-revenue-per-item',
-            figure={
-                'data': [
-                    go.Bar(x=["HL", "SL"], y=[sales_data["Avg_Revenue_Per_Item"]["HL"], sales_data["Avg_Revenue_Per_Item"]["SL"]],
-                           marker_color=['teal', 'pink'])
-                ],
-                'layout': go.Layout(
-                    title="Average Revenue per Item",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Revenue per Item ($)'}
-                )
-            }
-        ),
+    # 3. Revenue Growth Rate
+    st.subheader("Revenue Growth Rate (HL vs SL)")
+    growth_fig = go.Figure()
+    growth_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Revenue Growth Rate"]["HL"],
+            data["Metrics"]["Revenue Growth Rate"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    growth_fig.update_layout(title="Revenue Growth Rate", xaxis_title="Category", yaxis_title="Growth (%)")
+    st.plotly_chart(growth_fig, use_container_width=True)
 
-        # Gross Margin by Category
-        dcc.Graph(
-            id='gross-margin',
-            figure={
-                'data': [
-                    go.Bar(x=["HL", "SL"], y=[sales_data["Gross_Margin"]["HL"], sales_data["Gross_Margin"]["SL"]],
-                           marker_color=['blue', 'orange'])
-                ],
-                'layout': go.Layout(
-                    title="Gross Margin by Category",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Gross Margin ($)'}
-                )
-            }
-        ),
+    # 4. Average Revenue Per Item
+    st.subheader("Average Revenue Per Item (HL vs SL)")
+    avg_rev_fig = go.Figure()
+    avg_rev_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Average Revenue Per Item"]["HL"],
+            data["Metrics"]["Average Revenue Per Item"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    avg_rev_fig.update_layout(title="Average Revenue Per Item", xaxis_title="Category", yaxis_title="Revenue ($)")
+    st.plotly_chart(avg_rev_fig, use_container_width=True)
 
-        # Average Transaction Value (ATV)
-        dcc.Graph(
-            id='avg-transaction-value',
-            figure={
-                'data': [
-                    go.Bar(x=["HL", "SL"], y=[sales_data["ATV"]["HL"], sales_data["ATV"]["SL"]],
-                           marker_color=['cyan', 'magenta'])
-                ],
-                'layout': go.Layout(
-                    title="Average Transaction Value (ATV)",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'ATV ($)'}
-                )
-            }
-        ),
+    # 5. Gross Margin
+    st.subheader("Gross Margin (HL vs SL)")
+    margin_fig = go.Figure()
+    margin_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Gross Margin"]["HL"],
+            data["Metrics"]["Gross Margin"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    margin_fig.update_layout(title="Gross Margin", xaxis_title="Category", yaxis_title="Margin ($)")
+    st.plotly_chart(margin_fig, use_container_width=True)
 
-        # Sales by Channel
-        dcc.Graph(
-            id='sales-by-channel',
-            figure={
-                'data': [
-                    go.Pie(labels=["In-Store", "Online"], values=[sales_data["Channel_Revenue"]["In-Store"],
-                                                                  sales_data["Channel_Revenue"]["Online"]],
-                           hole=.4)
-                ],
-                'layout': go.Layout(
-                    title="Sales by Channel"
-                )
-            }
-        ),
+    # 6. Sales by Channel
+    st.subheader("Sales by Channel (In-Store vs Online)")
+    channel_fig = go.Figure()
+    channel_fig.add_trace(go.Bar(
+        x=["In-Store", "Online"],
+        y=[
+            data["Metrics"]["Sales by Channel"]["In-Store"],
+            data["Metrics"]["Sales by Channel"]["Online"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    channel_fig.update_layout(title="Sales by Channel", xaxis_title="Channel", yaxis_title="Revenue ($)")
+    st.plotly_chart(channel_fig, use_container_width=True)
 
-        # Revenue Per Employee
-        dcc.Graph(
-            id='revenue-per-employee',
-            figure={
-                'data': [
-                    go.Bar(x=["HL", "SL"], y=[sales_data["Revenue_Per_Employee"]["HL"], sales_data["Revenue_Per_Employee"]["SL"]],
-                           marker_color=['gold', 'silver'])
-                ],
-                'layout': go.Layout(
-                    title="Revenue Per Employee",
-                    xaxis={'title': 'Category'},
-                    yaxis={'title': 'Revenue Per Employee ($)'}
-                )
-            }
-        ),
-    ])
+    # 7. Average Transaction Value
+    st.subheader("Average Transaction Value (HL vs SL)")
+    atv_fig = go.Figure()
+    atv_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Average Transaction Value"]["HL"],
+            data["Metrics"]["Average Transaction Value"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    atv_fig.update_layout(title="Average Transaction Value", xaxis_title="Category", yaxis_title="Transaction Value ($)")
+    st.plotly_chart(atv_fig, use_container_width=True)
+
+    # 8. Revenue Per Employee
+    st.subheader("Revenue Per Employee (HL vs SL)")
+    rev_per_emp_fig = go.Figure()
+    rev_per_emp_fig.add_trace(go.Bar(
+        x=["HL", "SL"],
+        y=[
+            data["Metrics"]["Revenue Per Employee"]["HL"],
+            data["Metrics"]["Revenue Per Employee"]["SL"],
+        ],
+        marker_color=["blue", "orange"]
+    ))
+    rev_per_emp_fig.update_layout(title="Revenue Per Employee", xaxis_title="Category", yaxis_title="Revenue ($)")
+    st.plotly_chart(rev_per_emp_fig, use_container_width=True)
