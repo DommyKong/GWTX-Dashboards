@@ -18,6 +18,10 @@ st.markdown(
 )
 
 def inventory_dashboard():
+        # Back to Home Button
+    if st.button("Go to Home", key="home_from_inventory"):
+        st.experimental_set_query_params(page="home")
+
     # Mock Data for Inventory Dashboard
     data = {
         "Metrics": {

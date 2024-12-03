@@ -1,5 +1,9 @@
 import streamlit as st
+import warnings
 import plotly.graph_objs as go
+
+# Suppress Streamlit warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="streamlit")
 
 # Adjust sidebar and widget font size
 st.markdown(
@@ -18,6 +22,10 @@ st.markdown(
 )
 
 def sales_dashboard():
+    # Back to Home Button
+    if st.button("Go to Home", key="home_from_sales"):
+        st.experimental_set_query_params(page="home")
+
     # Mock Data for Sales Dashboard
     data = {
         "Metrics": {

@@ -19,6 +19,10 @@ st.markdown(
 )
 
 def operations_dashboard():
+     # Back to Home Button
+    if st.button("Go to Home", key="home_from_operations"):
+        st.experimental_set_query_params(page="home")
+
     # Mock Data for Operations Dashboard
     data = {
         "Metrics": {
